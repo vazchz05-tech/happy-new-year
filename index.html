@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy New Year 🎉</title>
+  <style>
+    :root{
+      --accent: #ffd700;
+      --bg1: #0f172a;
+      --bg2: #1f2937;
+      --glass: rgba(255,255,255,0.06);
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{
+      background: radial-gradient(ellipse at 10% 10%, rgba(255,223,77,0.08), transparent 10%),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:#fff;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .scene{
+      width:100%;max-width:1200px;padding:40px;box-sizing:border-box;
+      position:relative;z-index:2;
+      display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;
+      backdrop-filter: blur(6px);
+    }
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+      border-radius:18px;padding:28px;box-shadow:0 8px 40px rgba(2,6,23,0.6);
+    }
+    .hero{
+      padding:20px;border-radius:14px;
+    }
+    h1{
+      margin:0 0 12px 0;font-size:48px;line-height:1;
+      text-shadow:0 6px 26px rgba(0,0,0,0.6);
+      display:flex;align-items:center;gap:12px;
+    }
+    .sparkle{color:var(--accent);font-size:0.85em;transform:translateY(-2px)}
+    p.lead{opacity:0.95;font-size:18px;margin:0 0 18px}
+    .cta{
+      display:flex;gap:12px;align-items:center;
+    }
+    .btn{
+      background:linear-gradient(90deg,#ff7a18,#ffb347);color:#111;padding:12px 18px;border-radius:12px;border:none;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(255,120,24,0.2);
+    }
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);color:#fff}
+    .gallery{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px;border-radius:12px;overflow:hidden;
+    }
+    .gallery img{width:100%;height:160px;object-fit:cover;display:block}
+    .side{
+      padding:18px;border-radius:12px;height:100%;display:flex;flex-direction:column;justify-content:center;gap:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.005));
+    }
+    .countdown{font-size:20px;font-weight:700;color:var(--accent)}
+    .confetti{
+      pointer-events:none;position:fixed;inset:0;z-index:1;mix-blend-mode:screen;
+    }
+    /* simple sparkle animation */
+    @keyframes floaty{
+      0%{transform:translateY(0) rotate(0);} 
+      50%{transform:translateY(-8px) rotate(3deg);} 
+      100%{transform:translateY(0) rotate(0);} 
+    }
+    .spark{display:inline-block;animation:floaty 3s ease-in-out infinite}
+    /* responsive */
+    @media (max-width:920px){
+      .scene{grid-template-columns:1fr;padding:22px}
+      h1{font-size:36px}
+      .gallery img{height:120px}
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="card hero">
+      <h1>
+        <span class="spark"><span class="sparkle">✨</span></span>
+        Happy New Year!
+      </h1>
+      <p class="lead">Wishing you a year full of joy, success, and unforgettable moments. Click the button below to open a little surprise — Google will open in a new tab while this message stays here.</p>
+
+      <div class="cta">
+        <button id="openGoogle" class="btn">Open Google & See Surprise</button>
+        <button id="replay" class="btn secondary" style="display:none">Replay Animation</button>
+      </div>
+
+      <div class="gallery" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1542224566-1e6051d8b5fa?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=1" alt="Fireworks">
+        <img src="https://images.unsplash.com/photo-1485217988980-11786ced9454?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=2" alt="Champagne">
+        <img src="https://images.unsplash.com/photo-1518552787944-0344a05f8b31?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=3" alt="Party lights">
+        <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=4" alt="Confetti">
+      </div>
+    </div>
+
+    <div class="card side">
+      <div class="countdown" id="countdown">00:00:00</div>
+      <div style="opacity:0.9">Time until the new year: <strong id="timeLabel">calculating...</strong></div>
+      <div style="margin-top:8px;font-size:14px;opacity:0.9">Tip: If your browser blocks the automatic opening of Google, press the button above.</div>
+    </div>
+  </div>
+
+  <canvas class="confetti" id="confetti"></canvas>
+
+  <script>
+    // Open Google in new tab (and provide fallback button if blocked)
+    const openGoogleBtn = document.getElementById('openGoogle');
+    function tryOpenGoogle(){
+      // attempt to open google in new tab
+      const win = window.open('https://www.google.com', '_blank');
+      if(!win){
+        // popup blocked, show message inside button (it stays clickable)
+        openGoogleBtn.textContent = 'Popup blocked — click to open Google';
+      } else {
+        openGoogleBtn.textContent = 'Google opened — enjoy the surprise 🎉';
+        setTimeout(()=>openGoogleBtn.style.display='none',2200);
+      }
+      // trigger short animation
+      launchConfetti(150);
+      document.getElementById('replay').style.display='inline-block';
+    }
+    openGoogleBtn.addEventListener('click', tryOpenGoogle);
+
+    // Countdown to next Jan 1st in user's local time
+    function updateCountdown(){
+      const now = new Date();
+      const year = now.getFullYear() + (now.getMonth()===11 && now.getDate()>31 ? 1 : 1);
+      const next = new Date('January 1,' + (now.getFullYear()+1) + ' 00:00:00');
+      const diff = Math.max(0, next - now);
+      const s = Math.floor(diff/1000)%60;
+      const m = Math.floor(diff/60000)%60;
+      const h = Math.floor(diff/3600000)%24;
+      const d = Math.floor(diff/86400000);
+      document.getElementById('timeLabel').textContent = d + 'd ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }
+    setInterval(updateCountdown,1000);
+    updateCountdown();
+
+    // simple confetti (canvas)
+    function launchConfetti(amount=100){
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      const DPR = window.devicePixelRatio || 1;
+      canvas.width = innerWidth * DPR; canvas.height = innerHeight * DPR;
+      canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+      ctx.scale(DPR,DPR);
+      const pieces = [];
+      for(let i=0;i<amount;i++){
+        pieces.push({
+          x: Math.random()*innerWidth,
+          y: Math.random()*-innerHeight,
+          w: 6 + Math.random()*10,
+          h: 8 + Math.random()*12,
+          r: Math.random()*360,
+          color: ['#ffd700','#ff6b6b','#6bffb8','#6b8bff','#f77','#9d7eff'][Math.floor(Math.random()*6)],
+          speed: 2+Math.random()*6,
+          rotSpeed: (Math.random()-0.5)*6
+        });
+      }
+      let t=0;
+      function frame(){
+        ctx.clearRect(0,0,canvas.width/DPR,canvas.height/DPR);
+        for(const p of pieces){
+          p.y += p.speed;
+          p.x += Math.sin((t+p.r)/20) * 1.5;
+          p.r += p.rotSpeed;
+          ctx.save();
+          ctx.translate(p.x,p.y);
+          ctx.rotate(p.r*Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+          ctx.restore();
+        }
+        t++;
+        if(pieces.length && pieces[0].y < innerHeight+200){
+          requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0,0,canvas.width/DPR,canvas.height/DPR);
+        }
+      }
+      frame();
+    }
+
+    document.getElementById('replay').addEventListener('click', ()=>launchConfetti(120));
+
+    // Auto-try opening Google once after load to mimic "start there" behavior.
+    // Browsers may block this; if blocked user can click the button.
+    window.addEventListener('load', ()=>{
+      setTimeout(()=> {
+        // Small delay to allow user gesture in some browsers
+        tryOpenGoogle();
+      },800);
+    });
+  </script>
+</body>
+</html>
